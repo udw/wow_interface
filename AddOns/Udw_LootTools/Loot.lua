@@ -109,7 +109,7 @@ end
 -- Addon Loading
 
 frame = CreateFrame("Frame",nil,UIParent)
-local version = GetAddOnMetadata("Udw", "Version")
+local version = GetAddOnMetadata("Udw_LootTools", "Version")
 
 frame:SetScript("OnEvent", eventHandler)
 frame:SetScript("OnUpdate", onUpdate);
@@ -117,12 +117,11 @@ frame:SetScript("OnUpdate", onUpdate);
 SlashCmdList["UDW"] = function(msg)
 	Udw_SlashCommand(msg)
 end
-SLASH_Udw1 = "/udw"
+SLASH_UDW1 = "/udw"
 
 if( DEFAULT_CHAT_FRAME ) then
-	DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw v"..version.." loaded")
+	DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw_LootTools v"..version.." loaded")
 end
-UIErrorsFrame:AddMessage("Udw v"..version.." AddOn loaded", 1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
 frame:RegisterEvent("CHAT_MSG_LOOT")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("LOOT_SLOT_CLEARED")

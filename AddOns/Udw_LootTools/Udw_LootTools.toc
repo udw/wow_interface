@@ -1,5 +1,6 @@
 ## Interface: 30300
-## Title: Udw
+## Title: Udw_LootTools
 ## Author: Yehonal
 ## Version: 0.0.0.1
+## DefaultState: Enabled
 Loot.lua
