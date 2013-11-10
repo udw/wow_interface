@@ -1,0 +1,8 @@
+<Script file="Loot.lua" />
+<Frame name="Loot">
+	<Scripts>
+		<OnLoad>
+			Udw_OnLoad(self);
+		</OnLoad>
+	</Scripts>
+</Frame>
