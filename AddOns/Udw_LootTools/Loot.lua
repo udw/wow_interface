@@ -117,7 +117,7 @@ frame:SetScript("OnUpdate", onUpdate);
 SlashCmdList["UDW"] = function(msg)
 	Udw_SlashCommand(msg)
 end
-SLASH_UDW1 = "/udw"
+SLASH_UDW1 = "/udw_loot"
 
 if( DEFAULT_CHAT_FRAME ) then
 	DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw_LootTools v"..version.." loaded")
