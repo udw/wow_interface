@@ -1,27 +1,32 @@
-local panelName
-local UdwDestroyItem = {}
+local UdwItemsInBag = {}
+local UdwDestroyItems = {}
 local autoDestroyRun=false
+local lootClosed=false
 local updateDiff = 0
 
 local function eventHandler(self, event, ...)
-  if(autoDestroyRun==true) then
-	  if(event == "BAG_UPDATE") then
-			Udw_AutoDestroy()
-	  elseif (event=="CHAT_MSG_LOOT") then
-		local message, sender, language, channelString, target, flags, _, channelNumber, channelName, _, _ = ...
-		Udw_HandleIncomingLoot(message)
-	  elseif (event=="LOOT_SLOT_CLEARED") then
-		--autoDestroyRun=false;
-	  end
-  end
+	if (autoDestroyRun==true) then
+		if (event=="BAG_UPDATE" or event=="UDW_AUTOLOOT_START") then
+			Udw_AutoLoot();
+		end
+		
+		if (event=="LOOT_CLOSED") then
+			lootClosed=true
+		end
+	end
 end
 
 local function onUpdate(self,elapsed) 
 	if (autoDestroyRun==true) then
-		updateDiff = updateDiff + elapsed; 	
+		Udw_AutoDestroy();
+	end
+   
+	if (lootClosed==true) then
+		updateDiff = updateDiff + elapsed;         
 		if (updateDiff>1) then
-			autoDestroyRun=false;
-			updateDiff = 0;
+				autoDestroyRun=false;
+				lootClosed=false
+				updateDiff = 0;
 		end
 	end
 end
@@ -30,65 +35,71 @@ function Udw_SlashCommand(msg)
   if(msg) then
 	local command = strlower(msg)
 	if (command == "destroy") then
-		Udw_HandleLoot();
+		UdwDestroyItems = {}
+		if not Udw_GetBagItems() then
+			UIErrorsFrame:AddMessage("Free at least one space in your bag to destroy loot!", 1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
+		else
+			autoDestroyRun=true;
+			eventHandler(this,"UDW_AUTOLOOT_START");
+		end
 	end
   end
-end
-
-function Udw_HandleLoot()
-		autoDestroyRun=true;
-		Udw_AutoLoot();
 end
 
 function Udw_AutoLoot()
 	local numItems = GetNumLootItems()
 	--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw number of items:" .. numItems)
 	for i=1,numItems do
+		local itemLink=GetLootSlotLink(i)
+		if (itemLink) then
 			LootSlot(i)
+			ConfirmLootSlot(i)
+			local itemId = string.match (itemLink, "item:(%d+)")
+			UdwDestroyItems[#(UdwDestroyItems) + 1] = tonumber(itemId)
+		end
 	end
 end
 
-function Udw_HandleIncomingLoot(message)	
-		local _,_,_,itemId = string.find(message, "^You receive loot: |?c?f?f?(.*)|Hitem:(%d+):.*:.*:.*:.*:.*:.*:.*:.*|.*$")
-		if(itemId) then
-			local name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemId)
-				--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw Destroy grey: "..itemId..", quality:"..quality)
-				UdwDestroyItem[#(UdwDestroyItem) + 1] = tonumber(itemId)
+function Udw_GetBagItems() 
+	UdwItemsInBag = {}
+	local freeSpace=false
+	for i = 0, 4, 1 do
+		UdwItemsInBag[i]={}
+		x = GetContainerNumSlots(i)
+		
+		local freeSlots, bagType = GetContainerNumFreeSlots(i)
+		if ( freeSlots>0 ) then
+			freeSpace=true
 		end
+		
+		for j = 0, x, 1 do
+			if GetContainerItemID(i, j) then
+				UdwItemsInBag[i][j] = tonumber(GetContainerItemID(i, j))
+			else
+				UdwItemsInBag[i][j] = false
+			end
+		end
+	end
+	
+	return freeSpace
 end
 
 function Udw_AutoDestroy()
 	for i = 0, 4, 1 do
 		x = GetContainerNumSlots(i)
 		for j = 0, x, 1 do
-			if GetContainerItemID(i, j) then
-				local tableIndex = Udw_InTable(UdwDestroyItem, tonumber(GetContainerItemID(i, j)))
-				if tableIndex then
+			local cItemId=GetContainerItemID(i, j)
+			if cItemId then
+				if UdwItemsInBag[i][j] == false then
 					PickupContainerItem(i, j)
-					if CursorHasItem() then
-						--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw Destroying "..tableIndex)
+					if CursorHasItem() and Udw_InTable(UdwDestroyItems,cItemId) then
+						--DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw Destroying ".. cItemId)
 						DeleteCursorItem()
-						tremove(UdwDestroyItem, tableIndex)
 					end
 				end
 			end
 		end
 	end
-end
-
-function Udw_InTable2(t, val)
-	for i=1, #(t), 1 do
-		local localValue
-		if(type(t[i]) == "table") then
-			localValue = t[i].name
-		else
-			localValue = t[i]
-		end
-  		if localValue == val then
-		    return i
-  		end
-	end
-	return false
 end
 
 function Udw_InTable(t, val)
@@ -122,7 +133,9 @@ SLASH_UDW1 = "/udw_loot"
 if( DEFAULT_CHAT_FRAME ) then
 	DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw_LootTools v"..version.." loaded")
 end
-frame:RegisterEvent("CHAT_MSG_LOOT")
+
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("LOOT_SLOT_CLEARED")
+frame:RegisterEvent("LOOT_SLOT_CHANGED")
+frame:RegisterEvent("LOOT_CLOSED")
 	
