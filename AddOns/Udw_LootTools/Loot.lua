@@ -8,23 +8,32 @@ local function eventHandler(self, event, message)
 	if (dCount>0) then
 		if (event=="LOOT_CLOSED") then
 			lootClosed=true
-		else
-			Udw_AutoLoot();
+		elseif (event=="BAG_UPDATE") then
+			Udw_AutoDestroy();
 		end
 	end
 end
 
-local function onUpdate(self,elapsed)   
-	if (dCount>0) then	
-		Udw_AutoDestroy();
-	end
+local function clear() 
+	lootClosed=false
+	dCount=0
+	UdwDestroyItems = {}
+	UdwItemsInBag = {}
+end
 
-	if (dCount==0 and lootClosed==true) then
-		updateDiff = updateDiff + elapsed;         
-		if (updateDiff>1) then
+local function onUpdate(self,elapsed)   
+	if (dCount>0) then
+		if (lootClosed==false) then
+			Udw_AutoLoot();
+		end
+	end
+	
+	if (lootClosed==true) then
+		updateDiff = updateDiff + elapsed; 
+		if (updateDiff>2) then
 			UIErrorsFrame:RegisterEvent("UI_ERROR_MESSAGE")
-			lootClosed=false
-			updateDiff = 0;
+			clear()
+			updateDiff=0
 		end
 	end
 end
@@ -40,7 +49,7 @@ end
 
 function Udw_DestroyStart() 
 	if (GetNumLootItems()>0) then
-		UdwDestroyItems = {}
+		clear()
 		freeSlots=Udw_TotalFreeSlots()
 		if freeSlots==0 then
 			UIErrorsFrame:AddMessage("Free at least one space in your bag to destroy loot!", 1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
@@ -55,11 +64,13 @@ end
 
 function Udw_AutoLoot()
 	local numItems=GetNumLootItems()
-	for i=1,numItems do
-		local itemLink=GetLootSlotLink(i)
-		if (itemLink) then
-			LootSlot(i)
-			ConfirmLootSlot(i)
+	if (numItems>0) then
+		for i=1,numItems do
+			local itemLink=GetLootSlotLink(i)
+			if (itemLink or not LootSlotIsItem(i)) then
+				LootSlot(i)
+				ConfirmLootSlot(i)
+			end
 		end
 	end
 end
@@ -86,9 +97,7 @@ function Udw_AutoDestroy()
 	end
 end
 
-function Udw_GetBagItems() 
-	UdwItemsInBag = {}
-	
+function Udw_GetBagItems() 	
 	for i = 0, 4, 1 do
 		UdwItemsInBag[i]={}
 		local x = GetContainerNumSlots(i)
@@ -150,8 +159,8 @@ if( DEFAULT_CHAT_FRAME ) then
 end
 
 frame:RegisterEvent("BAG_UPDATE")
---frame:RegisterEvent("LOOT_SLOT_CLEARED")
---frame:RegisterEvent("LOOT_SLOT_CHANGED")
---frame:RegisterEvent("LOOT_CLOSED")
+frame:RegisterEvent("LOOT_SLOT_CLEARED")
+frame:RegisterEvent("LOOT_SLOT_CHANGED")
+frame:RegisterEvent("LOOT_CLOSED")
 --frame:RegisterEvent("CHAT_MSG_LOOT")
 --frame:RegisterEvent("UI_ERROR_MESSAGE")
