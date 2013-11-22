@@ -3,10 +3,18 @@ local UdwDestroyItems = {}
 local updateDiff = 0
 local dCount = 0
 local lootClosed=false
+local debugOn=false
+
+local function debugMsg(msg)
+	if (debugOn) then
+		DEFAULT_CHAT_FRAME:AddMessage("|cffffff00"msg)
+	end
+end
 
 local function eventHandler(self, event, message)
 	if (dCount>0) then
 		if (event=="LOOT_CLOSED") then
+			debugMsg("Loot closed")
 			lootClosed=true
 		else
 			Udw_AutoLoot();
@@ -29,11 +37,38 @@ local function onUpdate(self,elapsed)
 	end
 end
 
+function Udw_lootOnLoad() 
+	frame = CreateFrame("Frame",nil,UIParent)
+	local version = GetAddOnMetadata("Udw_LootTools", "Version")
+
+	frame:SetScript("OnEvent", eventHandler)
+	frame:SetScript("OnUpdate", onUpdate);
+
+	SlashCmdList["UDW"] = function(msg)
+		Udw_SlashCommand(msg)
+	end
+	SLASH_UDW1 = "/udw_loot"
+
+	if( DEFAULT_CHAT_FRAME ) then
+		DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw_LootTools v"..version.." loaded")
+	end
+
+	frame:RegisterEvent("BAG_UPDATE")
+	--frame:RegisterEvent("LOOT_SLOT_CLEARED")
+	--frame:RegisterEvent("LOOT_SLOT_CHANGED")
+	--frame:RegisterEvent("LOOT_CLOSED")
+	--frame:RegisterEvent("CHAT_MSG_LOOT")
+	--frame:RegisterEvent("UI_ERROR_MESSAGE")
+end
+
 function Udw_SlashCommand(msg)
   if(msg) then
 	local command = strlower(msg)
 	if (command == "destroy") then
 		Udw_DestroyStart()
+	end
+	if (command == "debug") then
+		debugOn= !debugOn
 	end
   end
 end
@@ -48,12 +83,14 @@ function Udw_DestroyStart()
 			Udw_GetBagItems()
 			Udw_GetLootItems()
 			UIErrorsFrame:UnregisterEvent("UI_ERROR_MESSAGE")
+			debugMsg("Starting loot destroy")
 			eventHandler(this,"UDW_DESTROY_START")
 		end
 	end
 end
 
 function Udw_AutoLoot()
+	debugMsg("Autolooting")
 	local numItems=GetNumLootItems()
 	for i=1,numItems do
 		local itemLink=GetLootSlotLink(i)
@@ -65,6 +102,7 @@ function Udw_AutoLoot()
 end
 
 function Udw_AutoDestroy()
+	debugMsg("Autodestroying")
 	for i = 0, 4, 1 do
 		local x = GetContainerNumSlots(i)
 		for j = 0, x, 1 do
@@ -133,25 +171,4 @@ function Udw_TotalFreeSlots()
 end
 
 -- Addon Loading
-
-frame = CreateFrame("Frame",nil,UIParent)
-local version = GetAddOnMetadata("Udw_LootTools", "Version")
-
-frame:SetScript("OnEvent", eventHandler)
-frame:SetScript("OnUpdate", onUpdate);
-
-SlashCmdList["UDW"] = function(msg)
-	Udw_SlashCommand(msg)
-end
-SLASH_UDW1 = "/udw_loot"
-
-if( DEFAULT_CHAT_FRAME ) then
-	DEFAULT_CHAT_FRAME:AddMessage("|cffffff00Udw_LootTools v"..version.." loaded")
-end
-
-frame:RegisterEvent("BAG_UPDATE")
---frame:RegisterEvent("LOOT_SLOT_CLEARED")
---frame:RegisterEvent("LOOT_SLOT_CHANGED")
---frame:RegisterEvent("LOOT_CLOSED")
---frame:RegisterEvent("CHAT_MSG_LOOT")
---frame:RegisterEvent("UI_ERROR_MESSAGE")
+Udw_lootOnLoad()
