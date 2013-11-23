@@ -2,7 +2,7 @@
 <Frame name="Loot">
 	<Scripts>
 		<OnLoad>
-			Udw_OnLoad(self);
+			<!-- Udw_lootOnLoad(self); -->
 		</OnLoad>
 	</Scripts>
 </Frame>

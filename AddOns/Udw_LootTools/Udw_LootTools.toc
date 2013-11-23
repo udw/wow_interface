@@ -3,4 +3,5 @@
 ## Author: Yehonal
 ## Version: 0.0.2.2
 ## DefaultState: Enabled
+## Dependencies: Udw_Lib
 Loot.lua

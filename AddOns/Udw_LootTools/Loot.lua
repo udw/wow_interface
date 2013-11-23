@@ -1,3 +1,25 @@
+ --[[ ========================================================================================
+ Copyright (C) 2005-2013 UDW-SOFTWARE By HW2 <www.hyperweb2.com>
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# ========================================================================================= --]]
+
+-- Keybindings
+BINDING_HEADER_Udw_LootTools = "Udw Loot Tools"
+BINDING_NAME_UDW_LOOT_DESTROY = "Destroy Loot"
+
 local UdwItemsInBag = {}
 local UdwDestroyItems = {}
 local updateDiff = 0
@@ -5,16 +27,10 @@ local dCount = 0
 local lootClosed=false
 local debugOn=false
 
-local function debugMsg(msg)
-	if (debugOn) then
-		DEFAULT_CHAT_FRAME:AddMessage("|cffffff00"..msg)
-	end
-end
-
 local function eventHandler(self, event, message)
 	if (dCount>0) then
 		if (event=="LOOT_CLOSED") then
-			debugMsg("Loot closed")
+			Udw_debugMsg("Loot closed")
 			lootClosed=true
 		elseif (event=="BAG_UPDATE") then
 			Udw_AutoDestroy();
@@ -93,14 +109,14 @@ function Udw_DestroyStart()
 			Udw_GetBagItems()
 			Udw_GetLootItems()
 			UIErrorsFrame:UnregisterEvent("UI_ERROR_MESSAGE")
-			debugMsg("Starting loot destroy")
+			Udw_debugMsg("Starting loot destroy")
 			eventHandler(this,"UDW_DESTROY_START")
 		end
 	end
 end
 
 function Udw_AutoLoot()
-	debugMsg("Autolooting")
+	Udw_debugMsg("Autolooting")
 	local numItems=GetNumLootItems()
 	if (numItems>0) then
 		for i=1,numItems do
@@ -114,7 +130,7 @@ function Udw_AutoLoot()
 end
 
 function Udw_AutoDestroy()
-	debugMsg("Autodestroying")
+	Udw_debugMsg("Autodestroying")
 	for i = 0, 4, 1 do
 		local x = GetContainerNumSlots(i)
 		for j = 0, x, 1 do
