@@ -112,6 +112,8 @@ function Udw_DestroyStart()
 			Udw_debugMsg("Starting loot destroy")
 			eventHandler(this,"UDW_DESTROY_START")
 		end
+	else
+		UIErrorsFrame:AddMessage("No loot to destroy!", 1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME)
 	end
 end
 
